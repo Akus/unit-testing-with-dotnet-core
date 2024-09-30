@@ -15,13 +15,33 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-
-- task: DotNetCoreCLI@2
+- task: SonarQubePrepare@6
+  displayName: 'SonarQube prepare'
   inputs:
+    SonarQube: 'Akos_Sonarqube_in_Azure_VM'
+    scannerMode: 'MSBuild'
+    msBuildVersion: '9.0.0.100868'
+    projectKey: 'sonar:Akos_Azure'
+    projectName: 'Akos_Azure'
+- task: DotNetCoreCLI@2
+  displayName: 'Build'
+  inputs:  
     azureSubscription: 'Pay-As-You-Go (ed55859d-6439-42f0-be22-92f432bd587a)'
     command: 'build'
     projects: '**/*.csproj'
+
+- task: SonarQubeAnalyze@6
+  displayName: 'SonarQube Analyze'
+  inputs:
+    jdkversion: 'JAVA_HOME_17_X64'    
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk'
+  inputs:
+    packageType: sdk
+    version: 3.1.x
+    installationPath: $(Agent.ToolsDirectory)/dotnet
 - task: DotNetCoreCLI@2
+  displayName: 'Testing'
   inputs:
     azureSubscription: 'Pay-As-You-Go (ed55859d-6439-42f0-be22-92f432bd587a)'
     command: 'test'
